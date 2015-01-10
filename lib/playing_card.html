@@ -1,0 +1,50 @@
+<!-- import polymer-element's definition -->
+<link rel="import" href="../../packages/polymer/polymer.html">
+
+<polymer-element name="playing-card">
+<template>
+<link rel="stylesheet" href="playing_card.css">
+<style>
+
+/*     host: {
+z-index: 1;
+transform: scale(1.00);
+}
+    host:(:hover) {
+z-index: 10;
+transform: scale(1.05);
+} */
+
+    :host {
+z-index: 1;
+/* transform: scale({{size}}); */
+position: absolute;
+  z-index: 2;
+left: {{left}}px;
+top: {{top}}px;
+    }
+    :host(:hover) {
+z-index: 10;
+/* transform: scale({{size + (size * 0.05)}}); */
+  /* float: left; */
+/*   width: 16em;
+  height: 22.4em;
+  margin: 0 1.2em 1.2em 0;
+ */  
+    }
+
+
+</style>
+<div id="card" class="card {{down}} noselect" on-tap="{{handleCardTapped}}" 
+  on-dblclick="{{handleDoubleClick}}">
+  <div class="front {{suitClass}}">
+    <span class="{{suitClass}}">{{rankView}}</span>
+    
+    <span class="{{suitClass}}">{{rankView}}</span>
+  </div>
+  <div class="back"></div>
+</div>
+</template> 
+<script type="application/dart" src="playing_card.dart"></script> 
+</polymer-element>
+

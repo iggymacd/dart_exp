@@ -1,0 +1,44 @@
+<!-- import polymer-element's definition -->
+<link rel="import" href="../../packages/polymer/polymer.html">
+<link rel="import" href="playing_card.html">
+<link rel="import" href="card_foundation.html">
+
+<polymer-element name="stack-hand" attributes="count">
+<template>
+<style>
+#sample_stack_id {
+  width: 100%;
+  height: 400px;
+  position: relative;
+  border: 1px solid #ccc;
+  background-color: #003300;
+}
+playing-card{
+position: absolute;
+  z-index: 2;
+/* left: {{left}}px;
+top: {{top}}px; */
+}
+</style>
+<div>
+  <!-- <div id="sample_stack_id" horizontal layout center>
+    <template repeat="{{foundation in foundations | enumerate}}">
+      <card-foundation size="1.0" id="{{foundation.index}}"
+      position="{{foundation.index}}" on-ready="{{layoutReady}}"
+      on-foundationclicked="{{onFoundationClicked}}" 
+      flex></card-foundation>
+    </template>
+    </div> -->
+  <div id="sample_stack_id" horizontal layout center>
+    <template repeat="{{card in cards}}"> 
+    <playing-card
+      rank="{{card.rank}}" suit="{{card.suit}}" top="{{card.top}}"
+      left="{{card.left}}" size="1.0" on-cardclicked="{{onCardClicked}}"
+      on-dblclick="{{onDoubleClick}}" flex>
+      </playing-card> 
+      </template>
+  </div>
+</div>
+</template> <script type="application/dart" src="stack_hand.dart"></script> 
+</polymer-element>
+

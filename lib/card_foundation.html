@@ -1,0 +1,41 @@
+<!-- import polymer-element's definition -->
+<link rel="import" href="../../packages/polymer/polymer.html">
+
+<polymer-element name="card-foundation">
+<template>
+<link rel="stylesheet" href="card_foundation.css">
+<style>
+
+/*     host: {
+z-index: 1;
+transform: scale(1.00);
+}
+    host:(:hover) {
+z-index: 10;
+transform: scale(1.05);
+} */
+
+    :host {
+    z-index: 1;
+opacity: 0.25;
+    }
+/*     :host(:hover) {
+z-index: 10;
+transform: scale({{size + (size * 0.05)}});
+    } */
+
+
+</style>
+<div id="{{position}}" class="foundation {{down}} noselect" on-tap="{{handleCardTapped}}" 
+  on-dblclick="{{handleDoubleClick}}">
+  <div class="front ">
+    <span class=""></span>
+    
+    <span class=""></span>
+  </div>
+  <div class="back"></div>
+</div>
+</template> 
+<script type="application/dart" src="card_foundation.dart"></script> 
+</polymer-element>
+
