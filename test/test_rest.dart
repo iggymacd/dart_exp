@@ -236,10 +236,22 @@ void main() {
         expect(game.eastHand.length,equals(9));
         expect(game.westHand.length,equals(9));
           expect(game.southHand.length,equals(9));
-          print(game.eastHand);
-          print(game.southHand);
-          print(game.westHand);
-          print(game.northHand);
+          print(game.eastHand..sort((a,b)
+              =>a.suit == game.trump
+              ? a.compareTo(b,isTrump:true)
+              : a.compareTo(b)));
+          print(game.southHand..sort((a,b)
+              =>a.suit == game.trump
+              ? a.compareTo(b,isTrump:true)
+              : a.compareTo(b)));
+          print(game.westHand..sort((a,b)
+              =>a.suit == game.trump
+              ? a.compareTo(b,isTrump:true)
+              : a.compareTo(b)));
+          print(game.northHand..sort((a,b)
+              =>a.suit == game.trump
+              ? a.compareTo(b,isTrump:true)
+              : a.compareTo(b)));
           sub.cancel();
         });      
       sub = logger.onRecord
@@ -259,6 +271,38 @@ void main() {
         bus.fire(gr);
       }
     });//
+//    test('player announcements',(){
+//      StreamSubscription sub;
+//      var expectKittyCardsAreDealt =
+//        expectAsync((){
+//        expect(game.deck.length,equals(0));
+//        expect(game.northHand.length,equals(9));
+//        expect(game.eastHand.length,equals(9));
+//        expect(game.westHand.length,equals(9));
+//          expect(game.southHand.length,equals(9));
+//          print(game.eastHand);
+//          print(game.southHand);
+//          print(game.westHand);
+//          print(game.northHand);
+//          sub.cancel();
+//        });      
+//      sub = logger.onRecord
+//      .where((l)=>l.level==STATE && l.message == 'finished dealing kitty cards')
+//      .listen((_)=>expectKittyCardsAreDealt());
+//      List positions = ['east','south','west','north'];
+//      var kittyCards = staticValues.skip(24).toList();
+//      var position = (positions.indexOf('north') + 1)%4;
+//      for(int i = 0;i < kittyCards.length;i++){
+//        gr = new GameRecord();
+//        gr.action = Action.DEAL_KITTY_CARDS;
+//        if(i>0 && i%3 == 0){
+//          position = (position + 1)%4;
+//        }
+//        gr.card = kittyCards[i];
+//        gr.position = positions[position];
+//        bus.fire(gr);
+//      }
+//    });
     test('play round of cards',(){
       //Timer t = new Timer(const Duration(seconds: 3),()=>null);
       var sw = new Stopwatch()..start();
@@ -279,13 +323,6 @@ void main() {
         });      
       var expectTrickWasWon =
         expectAsync((){
-//        print(game.currentTrick);
-//        expect(game.deck.length,equals(0));
-//        expect(game.northHand.length,equals(0));
-//        expect(game.eastHand.length,equals(0));
-//        expect(game.westHand.length,equals(0));
-//          expect(game.southHand.length,equals(0));
-          //sub2.cancel();
         },count:9);      
       sub = logger.onRecord
       .where((l)=>l.level==STATE && l.message == 'finished playing cards')
@@ -306,25 +343,16 @@ void main() {
       };
       for(var trick in cardsToPlay.keys){
         for(var position in cardsToPlay[trick].keys.where((key)=>key != 'wonBy')){
-//          new Future.delayed(const Duration(milliseconds: 10), () {
-//            bus.fire(new GameRecord.playCard(card:cardsToPlay[trick][position],position:position));
-//          });
-          //new Future.delayed(new Duration(seconds: 1), () => bus.fire(new GameRecord.playCard(card:cardsToPlay[trick][position],position:position)));
           bus.fire(new GameRecord.playCard(card:cardsToPlay[trick][position],position:position));
-//          new Timer.periodic(new Duration(seconds:1), (timer) {
-//            bus.fire(new GameRecord.playCard(card:cardsToPlay[trick][position],position:position));
-//            timer.cancel();
-//            });
         }
-//        new Timer.periodic(new Duration(seconds:4), (timer) {
-//          bus.fire(new GameRecord.trickWon(position:cardsToPlay[trick]['wonBy']));
-//                    timer.cancel();
-//                    });
         bus.fire(new GameRecord.trickWon(position:cardsToPlay[trick]['wonBy']));
       }      
     });
     
   });
+}
+
+sortCards() {
 }
 
 
@@ -392,6 +420,7 @@ class SampleGameModel{
       (f)=>f()//call each function
     );
     listenForTrickWonByPlayerEvents();
+    listenForMessageEvents();
     
   }
   void releaseListeners(){//not sure if this is useful
@@ -560,8 +589,18 @@ class SampleGameModel{
   }
   
   void postMessage(GameRecord record) {
-    
+    switch(record.messageType){
+    case MessageType.ANNOUNCE:
+      logger.log(STATE, record.message);
+      break;
+    case MessageType.INFO:
+      break;
+    case MessageType.CONTENT:
+      break;
+      
+    }
   }
+  
 }
 class GameRecord{
   final DateTime time;
@@ -574,10 +613,13 @@ class GameRecord{
     });
   
   Action action;
+  TablePosition target;
   String card;
   String position;
   String bid;
+  MessageType messageType;
   String message;
+  String from;
   List<String> deck;
   GameRecord():
     time = new DateTime.now(),
@@ -590,7 +632,7 @@ class GameRecord{
     action = Action.TRICK_WON,
     time = new DateTime.now(),
     sequenceNumber = GameRecord._nextNumber;
-  GameRecord.postMessage({this.message,this.position}):
+  GameRecord.postMessage({this.message,this.from}):
     action = Action.MESSAGE,
     time = new DateTime.now(),
     sequenceNumber = GameRecord._nextNumber;
@@ -937,6 +979,29 @@ class GameModel extends Observable {
 }
 
 class Card {
+  static Map trumpRank = const {
+      '6':0,
+      '7':0,
+      '8':0,
+      'q':3,
+      'k':4,
+      't':10,
+      'a':11,
+      '9':14,
+      'j':20
+  };
+  static Map nonTrumpRank = const {
+      '6':0,
+      '7':0,
+      '8':0,
+      '9':0,
+      'j':2,
+      'q':3,
+      'k':4,
+      't':10,
+      'a':11
+  };
+
   String shortString;
   String rank;
   String suit;
@@ -958,6 +1023,18 @@ class Card {
   }
   bool operator==(other){
     return this.rank == other.rank && this.suit == other.suit;
+  }
+  int compareTo(Card other,{isTrump:false}){
+    if(this == other){
+      return 0;      
+    }
+    if(this.suit == other.suit){
+      return isTrump
+          ?trumpRank.keys.toList().indexOf(this.rank).compareTo(trumpRank.keys.toList().indexOf(other.rank))
+          //?trumpRank[this.rank].compareTo(trumpRank[other.rank])
+          :nonTrumpRank.keys.toList().indexOf(this.rank).compareTo(nonTrumpRank.keys.toList().indexOf(other.rank));
+    }
+    return this.suit.compareTo(other.suit);//order doesn't matter, just collecting
   }
 }
 class CardStack {
@@ -1001,7 +1078,7 @@ List<Card> toCards(GameRecord gameRecord) {
 }
 
 enum State {INITIALIZING,READY,ACTIVE,NEW,COMPLETE,IN_PROGRESS}
-enum MessageType{INFO,CONTENT}
+enum MessageType{INFO,CONTENT,ANNOUNCE}
 enum Action {
   DEAL_KITTY_CARDS,
   DEAL,
@@ -1017,7 +1094,15 @@ enum Action {
   TRICK_WON,
   MESSAGE
   }
-
+enum TablePosition{
+  NORTH,
+  EAST,
+  SOUTH,
+  WEST,
+  BASE,
+  CARD_PLAY,
+  BANNER
+}
 
 
 class Sample extends Observable{
